@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vame - Where Kids Become Game Creators</title>
+    <meta name="description"
+        content="AI-powered no-code platform turning kids' ideas into playable video games in minutes.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS (via CDN for speed) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        indigo: {
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                        },
+                        purple: {
+                            400: '#c084fc',
+                            500: '#a855f7', // #a78bfa is close to 400/500
+                        },
+                        vame: {
+                            dark: '#0f172a',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.5)' },
+                            '50%': { boxShadow: '0 0 40px rgba(168, 85, 247, 0.8)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.05) translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Hero Background */
+        .hero-bg {
+            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
+        }
+
+        /* Scroll Animations */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Particles Canvas */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <span class="font-bold text-3xl tracking-tight text-white">Vame</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8 font-medium text-sm">
+                        <a href="#problem" class="text-gray-300 hover:text-white transition-colors">Problem</a>
+                        <a href="#solution" class="text-gray-300 hover:text-white transition-colors">Solution</a>
+                        <a href="#how-it-works" class="text-gray-300 hover:text-white transition-colors">How It
+                            Works</a>
+                        <a href="#team" class="text-gray-300 hover:text-white transition-colors">Team</a>
+                        <a href="#roadmap" class="text-gray-300 hover:text-white transition-colors">Roadmap</a>
+                        <a href="#tech" class="text-gray-300 hover:text-white transition-colors">Tech</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white p-2">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden bg-slate-900/95 backdrop-blur-xl absolute w-full border-b border-white/10"
+            id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#problem"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Problem</a>
+                <a href="#solution"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Solution</a>
+                <a href="#how-it-works"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">How
+                    It Works</a>
+                <a href="#team"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Team</a>
+                <a href="#roadmap"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-white/5">Roadmap</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <canvas id="particles-js"></canvas>
+        <div class="absolute inset-0 hero-bg"></div>
+
+        <div class="container mx-auto px-4 text-center z-10 relative">
+            <div class="animate-float mb-6">
+                <h1 class="text-7xl md:text-9xl font-extrabold tracking-tighter mb-2">
+                    <span class="text-white">Vame</span>
+                </h1>
+            </div>
+
+            <h2 class="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+                AI turns <span class="text-gradient">words into worlds</span>.
+            </h2>
+
+            <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto font-light">
+                Where kids 8–16 become game creators—and grow smarter through creation.
+                <br><span class="text-indigo-400 font-medium">Unlock genius, one game at a time.</span>
+            </p>
+
+            <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-16">
+                <a href="https://choy-poy-dev.github.io/vame-hackathon-/#problem" target="_blank"
+                    class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-indigo-600 rounded-full hover:bg-indigo-500 hover:scale-105 focus:outline-none ring-offset-2 focus:ring-2 ring-indigo-400 shadow-lg shadow-indigo-500/30 animate-pulse-glow">
+                    <span>Try Live Prototype</span>
+                    <svg class="w-5 h-5 ml-2 -mr-1 transition-transform group-hover:translate-x-1" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Mockup -->
+            <div class="relative max-w-4xl mx-auto perspective-1000 group">
+                <div
+                    class="glass-card rounded-2xl p-2 transform transition-transform duration-500 group-hover:rotate-x-2">
+                    <div
+                        class="bg-slate-900 rounded-xl overflow-hidden aspect-video relative border border-white/10 shadow-2xl">
+                        <!-- Mock UI -->
+                        <div
+                            class="absolute top-4 left-4 bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs">AI
+                            </div>
+                            <p class="text-sm text-white">"Your adventure awaits! Drag the dragon to the castle."</p>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1614294149010-950b698f72c0?auto=format&fit=crop&q=80&w=1600"
+                            alt="Game Editor" class="w-full h-full object-cover opacity-60">
+                        <!-- Floating Elements -->
+                        <div
+                            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-float">
+                            <div class="text-6xl filter drop-shadow-lg">🐲</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section id="problem" class="py-24 relative">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 fade-in-up">
+                <span class="text-indigo-400 font-bold tracking-wider uppercase text-sm">The Problem</span>
+                <h2 class="text-4xl md:text-5xl font-bold mt-2">Why We Need <span class="text-gradient">Vame</span></h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="glass-card p-8 rounded-2xl fade-in-up" style="transition-delay: 100ms;">
+                    <div class="text-4xl mb-6">📱</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Doomscrolling Epidemic</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        "My 2nd-grade cousin spends hours watching Reels. Nothing sparks creation. Screen time is
+                        passive, not productive."
+                    </p>
+                </div>
+                <!-- Card 2 -->
+                <div class="glass-card p-8 rounded-2xl fade-in-up" style="transition-delay: 200ms;">
+                    <div class="text-4xl mb-6">🧠</div>
+                    <h3 class="text-xl font-bold text-white mb-3">Creativity Crisis</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Rote education kills imagination. Uzbekistan needs to boost its Global Creativity Index ranking
+                        by empowering young minds.
+                    </p>
+                </div>
+                <!-- Card 3 -->
+                <div class="glass-card p-8 rounded-2xl fade-in-up" style="transition-delay: 300ms;">
+                    <div class="text-4xl mb-6">🛠️</div>
+                    <h3 class="text-xl font-bold text-white mb-3">No Tools for Makers</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Existing tools are too complex. Kids fear failure and end up with zero portfolios. We need to
+                        lower the barrier to entry.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section id="solution" class="py-24 bg-slate-900/50 relative">
+        <div
+            class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent">
+        </div>
+        <div class="container mx-auto px-4">
+            <div class="max-w-5xl mx-auto glass-card p-10 md:p-16 rounded-3xl text-center fade-in-up">
+                <h2 class="text-3xl md:text-5xl font-bold mb-8">
+                    Vame <span class="text-gradient">Flips the Script</span>
+                </h2>
+                <p class="text-xl md:text-3xl font-light leading-relaxed text-gray-200 mb-10">
+                    Describe idea → <span class="text-purple-400 font-semibold">AI builds full game</span> → Drag-drop
+                    customize → <span class="text-green-400 font-semibold">Share instantly</span>.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8 text-left">
+                    <div class="flex items-start">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 mt-1">
+                            ✓</div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-white">21st Century Skills</h4>
+                            <p class="text-gray-400 text-sm">Builds logic, storytelling, and design skills through
+                                Constructionism (learning by making).</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 mt-1">
+                            ♥</div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-white">Parents Love It</h4>
+                            <p class="text-gray-400 text-sm">Transforms 'zombie screen time' into creative 'busy time'.
+                                Kids gain autonomy and confidence.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-24 relative overflow-hidden">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 fade-in-up">
+                <h2 class="text-4xl md:text-5xl font-bold">How It <span class="text-gradient">Works</span></h2>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-6 relative">
+                <!-- Connector Line -->
+                <div
+                    class="hidden md:block absolute top-12 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-indigo-500/20 -z-10">
+                </div>
+
+                <!-- Step 1 -->
+                <div class="text-center group fade-in-up" style="transition-delay: 100ms;">
+                    <div
+                        class="w-24 h-24 mx-auto bg-slate-800 rounded-full flex items-center justify-center border-4 border-slate-900 shadow-xl mb-6 group-hover:scale-110 transition-transform duration-300 relative z-10">
+                        <span class="text-4xl">💭</span>
+                        <div
+                            class="absolute -top-2 -right-2 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-white">
+                            1</div>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Dream</h3>
+                    <p class="text-sm text-gray-400">Type "Space math adventure with cats"</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center group fade-in-up" style="transition-delay: 200ms;">
+                    <div
+                        class="w-24 h-24 mx-auto bg-slate-800 rounded-full flex items-center justify-center border-4 border-slate-900 shadow-xl mb-6 group-hover:scale-110 transition-transform duration-300 relative z-10">
+                        <span class="text-4xl">🧠</span>
+                        <div
+                            class="absolute -top-2 -right-2 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-white">
+                            2</div>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">AI Generates</h3>
+                    <p class="text-sm text-gray-400">Story, levels, and art created instantly.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center group fade-in-up" style="transition-delay: 300ms;">
+                    <div
+                        class="w-24 h-24 mx-auto bg-slate-800 rounded-full flex items-center justify-center border-4 border-slate-900 shadow-xl mb-6 group-hover:scale-110 transition-transform duration-300 relative z-10">
+                        <span class="text-4xl">🖐️</span>
+                        <div
+                            class="absolute -top-2 -right-2 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-white">
+                            3</div>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Customize</h3>
+                    <p class="text-sm text-gray-400">Add physics & geometry (kid feedback!)</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="text-center group fade-in-up" style="transition-delay: 400ms;">
+                    <div
+                        class="w-24 h-24 mx-auto bg-slate-800 rounded-full flex items-center justify-center border-4 border-slate-900 shadow-xl mb-6 group-hover:scale-110 transition-transform duration-300 relative z-10">
+                        <span class="text-4xl">🚀</span>
+                        <div
+                            class="absolute -top-2 -right-2 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-white">
+                            4</div>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Publish</h3>
+                    <p class="text-sm text-gray-400">Share a playable link with friends.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="py-24 bg-slate-900/30">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 fade-in-up">
+                <h2 class="text-4xl md:text-5xl font-bold">The <span class="text-gradient">Team</span></h2>
+                <!-- <p class="text-gray-400 mt-4">All members officially registered via AI500 Telegram Bot.</p> -->
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Member 1 -->
+                <div class="glass-card p-8 rounded-2xl text-center fade-in-up">
+                    <div
+                        class="w-24 h-24 mx-auto bg-gray-700 rounded-full mb-6 overflow-hidden border-2 border-indigo-500/50">
+                        <img src="https://ui-avatars.com/api/?name=Alisher+Eshbekov&background=6366f1&color=fff"
+                            alt="Alisher" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Alisher Eshbekov</h3>
+                    <p class="text-indigo-400 font-medium mb-4">Project Manager</p>
+                    <p class="text-sm text-gray-400 mb-6">"Orchestrates AI projects from idea to launch; 3+ years
+                        leading tech teams in Uzbekistan."</p>
+                    <div class="flex justify-center space-x-2 text-xs font-mono text-gray-500">
+                        <span class="bg-white/5 px-2 py-1 rounded">Agile</span>
+                        <span class="bg-white/5 px-2 py-1 rounded">Scrum</span>
+                        <span class="bg-white/5 px-2 py-1 rounded">Python</span>
+                    </div>
+                    <a href="https://uz.linkedin.com/in/alisher-eshbekov-1245a4246" target="_blank"
+                        class="block mt-4 text-indigo-400 hover:text-white text-sm">LinkedIn ↗</a>
+                </div>
+
+                <!-- Member 2 -->
+                <div class="glass-card p-8 rounded-2xl text-center fade-in-up" style="transition-delay: 200ms;">
+                    <div
+                        class="w-24 h-24 mx-auto bg-gray-700 rounded-full mb-6 overflow-hidden border-2 border-green-500/50">
+                        <img src="https://ui-avatars.com/api/?name=Shohruhmirzo+Toyirov&background=22c55e&color=fff"
+                            alt="Shohruhmirzo" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Shohruhmirzo Toyirov</h3>
+                    <p class="text-green-400 font-medium mb-4">Senior Engineer</p>
+                    <p class="text-sm text-gray-400 mb-6">"Engineer with 6+ years of experience in projects ranging from AI to Blockchain"</p>
+                    <div class="flex justify-center space-x-2 text-xs font-mono text-gray-500">
+                        <span class="bg-white/5 px-2 py-1 rounded">React</span>
+                        <span class="bg-white/5 px-2 py-1 rounded">AI</span>
+                        <span class="bg-white/5 px-2 py-1 rounded">Physics</span>
+                    </div>
+                    <div class="flex justify-center gap-4 mt-4 text-sm">
+                        <a href="https://uz.linkedin.com/in/shohruhmirzo-toyirov-428448193" target="_blank"
+                            class="text-green-400 hover:text-white">LinkedIn ↗</a>
+                        <a href="https://www.toirov.sh/" target="_blank"
+                            class="text-green-400 hover:text-white">Portfolio ↗</a>
+                    </div>
+                </div>
+
+                <!-- Member 3 -->
+                <div class="glass-card p-8 rounded-2xl text-center fade-in-up" style="transition-delay: 100ms;">
+                    <div
+                        class="w-24 h-24 mx-auto bg-gray-700 rounded-full mb-6 overflow-hidden border-2 border-purple-500/50">
+                        <img src="https://ui-avatars.com/api/?name=Akbarjon+Anvarovich&background=a855f7&color=fff"
+                            alt="Akbarjon" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Akbarjon Anvarovich</h3>
+                    <p class="text-purple-400 font-medium mb-4">Finance Specialist</p>
+                    <p class="text-sm text-gray-400 mb-6">"Bridges business viability with tech innovation; expertise in
+                        edtech funding models."</p>
+                    <div class="flex justify-center space-x-2 text-xs font-mono text-gray-500">
+                        <span class="bg-white/5 px-2 py-1 rounded">Finance</span>
+                        <span class="bg-white/5 px-2 py-1 rounded">ROI</span>
+                        <span class="bg-white/5 px-2 py-1 rounded">Scaling</span>
+                    </div>
+                    <a href="https://uz.linkedin.com/in/akbarjon-anvarovich-5754a6277" target="_blank"
+                        class="block mt-4 text-purple-400 hover:text-white text-sm">LinkedIn ↗</a>
+                </div>
+
+    
+            </div>
+        </div>
+    </section>
+
+    <!-- Why We Will Win -->
+    <section class="py-24 relative">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto glass-card p-10 rounded-3xl fade-in-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-8 text-center">Why We Will <span
+                        class="text-gradient">Win</span></h2>
+
+                <div class="space-y-8">
+                    <div class="flex gap-4">
+                        <div class="text-2xl">💡</div>
+                        <div>
+                            <h4 class="text-lg font-bold text-white">The "Cousin" Spark</h4>
+                            <p class="text-gray-400">Inspired by my cousins' endless scrolling. I built a prototype my
+                                2nd-grader relative loved—he craved more autonomy than what standard LLMs offered.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="text-2xl">✅</div>
+                        <div>
+                            <h4 class="text-lg font-bold text-white">Validated with Kids</h4>
+                            <p class="text-gray-400">Tested with 5-6 Tashkent kids. They loved it but requested
+                                visual/physics upgrades—which is exactly what's driving our roadmap.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="text-2xl">🌍</div>
+                        <div>
+                            <h4 class="text-lg font-bold text-white">Local & Global</h4>
+                            <p class="text-gray-400">Multilingual from day one (Uzbek/Russian/English). The first
+                                kid-creator tool built for Central Asia.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap" class="py-24 bg-slate-900/30">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <h2 class="text-4xl font-bold text-center mb-16 fade-in-up">Roadmap</h2>
+
+            <div class="space-y-8 relative border-l-2 border-white/10 ml-4 md:ml-0 pl-8 md:pl-0">
+                <!-- Item 1 -->
+                <div class="md:flex items-center justify-between fade-in-up group">
+                    <div class="hidden md:block w-5/12 text-right pr-8">
+                        <h3 class="text-xl font-bold text-indigo-400">Working Prototype</h3>
+                        <p class="text-gray-400 text-sm">Live now. Core AI generation functional.</p>
+                    </div>
+                    <div
+                        class="absolute left-[-5px] md:left-1/2 md:-ml-[5px] w-3 h-3 bg-indigo-500 rounded-full group-hover:scale-150 transition-transform shadow-[0_0_10px_#6366f1]">
+                    </div>
+                    <div class="md:w-5/12 md:pl-8">
+                        <span class="md:hidden text-indigo-400 font-bold block mb-1">NOW</span>
+                        <div class="md:hidden">
+                            <h3 class="text-xl font-bold text-white">Working Prototype</h3>
+                            <p class="text-gray-400 text-sm">Live now. Core AI generation functional.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="md:flex items-center justify-between fade-in-up group" style="transition-delay: 100ms;">
+                    <div class="hidden md:block w-5/12 text-right pr-8">
+                        <h3 class="text-xl font-bold text-white">Closed Beta</h3>
+                        <p class="text-gray-400 text-sm">50-100 kids. Adding advanced physics & visuals.</p>
+                    </div>
+                    <div
+                        class="absolute left-[-5px] md:left-1/2 md:-ml-[5px] w-3 h-3 bg-gray-600 rounded-full group-hover:bg-purple-500 transition-colors">
+                    </div>
+                    <div class="md:w-5/12 md:pl-8">
+                        <span class="text-gray-500 font-bold block mb-1">DEC 2025</span>
+                        <div class="md:hidden">
+                            <h3 class="text-xl font-bold text-white">Closed Beta</h3>
+                            <p class="text-gray-400 text-sm">50-100 kids. Adding advanced physics & visuals.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div class="md:flex items-center justify-between fade-in-up group" style="transition-delay: 200ms;">
+                    <div class="hidden md:block w-5/12 text-right pr-8">
+                        <h3 class="text-xl font-bold text-white">Public Launch</h3>
+                        <p class="text-gray-400 text-sm">Global access + Parent Dashboard.</p>
+                    </div>
+                    <div
+                        class="absolute left-[-5px] md:left-1/2 md:-ml-[5px] w-3 h-3 bg-gray-600 rounded-full group-hover:bg-green-500 transition-colors">
+                    </div>
+                    <div class="md:w-5/12 md:pl-8">
+                        <span class="text-gray-500 font-bold block mb-1">Q1 2026</span>
+                        <div class="md:hidden">
+                            <h3 class="text-xl font-bold text-white">Public Launch</h3>
+                            <p class="text-gray-400 text-sm">Global access + Parent Dashboard.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 4 -->
+                <div class="md:flex items-center justify-between fade-in-up group" style="transition-delay: 300ms;">
+                    <div class="hidden md:block w-5/12 text-right pr-8">
+                        <h3 class="text-xl font-bold text-white">School Pilots</h3>
+                        <p class="text-gray-400 text-sm">Integration in Tashkent schools.</p>
+                    </div>
+                    <div
+                        class="absolute left-[-5px] md:left-1/2 md:-ml-[5px] w-3 h-3 bg-gray-600 rounded-full group-hover:bg-pink-500 transition-colors">
+                    </div>
+                    <div class="md:w-5/12 md:pl-8">
+                        <span class="text-gray-500 font-bold block mb-1">MID 2026</span>
+                        <div class="md:hidden">
+                            <h3 class="text-xl font-bold text-white">School Pilots</h3>
+                            <p class="text-gray-400 text-sm">Integration in Tashkent schools.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Section -->
+    <section id="tech" class="py-24 relative">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16 fade-in-up">Technology & <span
+                    class="text-gradient">AI</span></h2>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <!-- Left: AI Magic -->
+                <div class="glass-card p-8 rounded-2xl fade-in-up">
+                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span class="text-3xl mr-3">🧠</span> AI Magic
+                    </h3>
+                    <ul class="space-y-4 text-gray-300">
+                        <li class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span><strong>Grok-3 / Claude-3.5</strong> for narrative logic & game rules.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span><strong>Stable Diffusion</strong> for instant asset generation.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span><strong>Innovation:</strong> Adaptive physics/geometry generation based on kid
+                                feedback.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span><strong>Efficiency:</strong> Ultra-low-token prompts (200-400 tokens/game).</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Right: Stack -->
+                <div class="glass-card p-8 rounded-2xl fade-in-up" style="transition-delay: 100ms;">
+                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span class="text-3xl mr-3">⚡</span> The Stack
+                    </h3>
+                    <ul class="space-y-4 text-gray-300">
+                        <li class="flex items-start">
+                            <span class="text-indigo-400 mr-2">➜</span>
+                            <span><strong>Frontend:</strong> React + Beautiful Drag-and-Drop (Figma for kids).</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-indigo-400 mr-2">➜</span>
+                            <span><strong>Backend:</strong> Python FastAPI for high performance.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-indigo-400 mr-2">➜</span>
+                            <span><strong>Output:</strong> Instant HTML5/WebGL games (run anywhere).</span>
+                        </li>
+                    </ul>
+                    <div class="mt-8 pt-6 border-t border-white/10">
+                        <p class="text-sm text-gray-400 mb-2">Powered by our working prototype:</p>
+                        <a href="https://choy-poy-dev.github.io/vame-hackathon-/#problem" target="_blank"
+                            class="text-indigo-400 hover:text-white font-bold flex items-center">
+                            See it live <span class="ml-2">→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/5 bg-slate-900 text-center">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold text-white mb-2">Vame</h2>
+            <p class="text-gray-500 text-sm">AI500 Stage 1 – Publicly Accessible, Nov 30, 2025.</p>
+            <p class="text-gray-600 text-xs mt-4">© Team Vame.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) nav.classList.add('bg-slate-900/90', 'backdrop-blur-md', 'shadow-lg');
+            else nav.classList.remove('bg-slate-900/90', 'backdrop-blur-md', 'shadow-lg');
+        });
+
+        // Intersection Observer for Fade-ins
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Confetti on "How It Works"
+                    if (entry.target.id === 'how-it-works' || entry.target.closest('#how-it-works')) {
+                        confetti({
+                            particleCount: 100,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            colors: ['#6366f1', '#a855f7', '#ec4899']
+                        });
+                    }
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
+
+        // Particles
+        const canvas = document.getElementById('particles-js');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vy = (Math.random() * 0.5) + 0.1;
+                this.size = Math.random() * 2;
+                this.alpha = Math.random() * 0.5;
+            }
+            update() {
+                this.y -= this.vy;
+                if (this.y < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(99, 102, 241, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particles = [];
+            for (let i = 0; i < 50; i++) particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        init();
+        animate();
+    </script>
+</body>
+
+</html>
